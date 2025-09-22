@@ -5,6 +5,9 @@
 .env.staging
 .env.development
 
+#website 
+/website
+
 # Docker volumes and data
 /database/backups/*
 !/database/backups/.gitkeep
