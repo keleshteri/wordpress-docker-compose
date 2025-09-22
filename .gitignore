@@ -1,0 +1,95 @@
+# Environment files
+.env
+.env.local
+.env.production
+.env.staging
+.env.development
+
+# Docker volumes and data
+/database/backups/*
+!/database/backups/.gitkeep
+/website/uploads/*
+!/website/uploads/.gitkeep
+
+# WordPress core files (if using volume mounts)
+/website/wordpress/wp-config.php
+/website/wordpress/wp-content/uploads/*
+!/website/wordpress/wp-content/uploads/.gitkeep
+
+# WordPress plugins and themes (keep custom ones, ignore downloaded)
+/website/wordpress/wp-content/plugins/*/
+!/website/wordpress/wp-content/plugins/custom/
+/website/wordpress/wp-content/themes/*/
+!/website/wordpress/wp-content/themes/custom/
+
+# WordPress cache and temporary files
+/website/wordpress/wp-content/cache/
+/website/wordpress/wp-content/upgrade/
+/website/wordpress/wp-content/backup-db/
+/website/wordpress/wp-content/advanced-cache.php
+/website/wordpress/wp-content/wp-cache-config.php
+/website/wordpress/wp-content/cache.php
+/website/wordpress/wp-content/object-cache.php
+
+# WordPress debug and error logs
+/website/wordpress/debug.log
+/website/wordpress/error_log
+/website/wordpress/wp-content/debug.log
+*.log
+
+# Docker specific
+docker-compose.override.yml
+.docker/
+
+# IDE and Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+
+# Node.js (if using any build tools)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# PHP
+composer.phar
+/vendor/
+composer.lock
+
+# SSL certificates (if any)
+*.pem
+*.key
+*.crt
+*.csr
+
+# Backup files
+*.sql
+*.gz
+*.zip
+*.tar
+*.tar.gz
+
+# Local development tools
+.phpunit.result.cache
+phpunit.xml
+.phpcs.xml
+.phpmd.xml
