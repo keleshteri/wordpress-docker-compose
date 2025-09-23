@@ -1,0 +1,119 @@
+services:
+  # WordPress service
+  wordpress:
+    image: wordpress:latest
+    container_name: wp_site
+    restart: unless-stopped
+    ports:
+      - "${WORDPRESS_PORT}:80"
+    environment:
+      WORDPRESS_DB_HOST: ${WORDPRESS_DB_HOST}
+      WORDPRESS_DB_USER: ${WORDPRESS_DB_USER}
+      WORDPRESS_DB_PASSWORD: ${WORDPRESS_DB_PASSWORD}
+      WORDPRESS_DB_NAME: ${WORDPRESS_DB_NAME}
+        
+        /* SSL and URL Configuration for Cloudflare Tunnel */
+        define('WP_HOME','https://wp.keleshteri.eu.org');
+        define('WP_SITEURL','https://wp.keleshteri.eu.org');
+        
+        /* Handle HTTPS behind proxy */
+        if (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') {
+            $_SERVER['HTTPS'] = 'on';
+        }
+        
+        /* Force HTTPS */
+        define('FORCE_SSL_ADMIN', true);
+    volumes:
+      # Mount WordPress files for local editing
+      - ./website/wordpress:/var/www/html
+      # Mount custom themes (optional)
+      - ./website/themes:/var/www/html/wp-content/themes/custom
+      # Mount custom plugins (optional)
+      - ./website/plugins:/var/www/html/wp-content/plugins/custom
+      # Mount uploads directory
+      - ./website/uploads:/var/www/html/wp-content/uploads
+    depends_on:
+      - db
+    networks:
+      - wordpress-network
+
+  # MySQL database service
+  db:
+    image: mysql:8.0
+    container_name: wp_db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    volumes:
+      # Persistent database storage
+      - db_data:/var/lib/mysql
+      # Mount backup directory
+      - ./database/backups:/backups
+      # Mount initialization scripts
+      - ./database/db-init:/docker-entrypoint-initdb.d
+    ports:
+      - "${MYSQL_PORT}:3306"
+    networks:
+      - wordpress-network
+
+  # phpMyAdmin for database management
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: wp_phpmyadmin
+    restart: unless-stopped
+    ports:
+      - "${PHPMYADMIN_PORT}:80"
+    environment:
+      PMA_HOST: ${PMA_HOST}
+      PMA_USER: ${PMA_USER}
+      PMA_PASSWORD: ${PMA_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    depends_on:
+      - db
+    networks:
+      - wordpress-network
+
+  # WP-CLI for WordPress management
+  wpcli:
+    image: wordpress:cli
+    container_name: wp_cli
+    restart: "no"
+    command: sleep infinity
+    volumes:
+      - ./website/wordpress:/var/www/html
+    environment:
+      WORDPRESS_DB_HOST: ${WORDPRESS_DB_HOST}
+      WORDPRESS_DB_USER: ${WORDPRESS_DB_USER}
+      WORDPRESS_DB_PASSWORD: ${WORDPRESS_DB_PASSWORD}
+      WORDPRESS_DB_NAME: ${WORDPRESS_DB_NAME}
+    depends_on:
+      - db
+      - wordpress
+    networks:
+      - wordpress-network
+  # Cloudflare Tunnel for secure external access
+  wordpress-cf-tunnel:
+    image: cloudflare/cloudflared
+    container_name: wp_cf_tunnel
+    restart: unless-stopped
+    command: tunnel run
+    environment:
+      - TUNNEL_TOKEN=${TUNNEL_TOKEN}
+    volumes:
+      # Mount Cloudflare config file
+      - ./shared/cloudflared/config.yml:/etc/cloudflared/config.yml:ro
+    depends_on:
+      - wordpress
+    networks:
+      - wordpress-network
+
+
+volumes:
+  db_data:
+
+networks:
+  wordpress-network:
+    driver: bridge

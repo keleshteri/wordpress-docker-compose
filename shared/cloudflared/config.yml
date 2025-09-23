@@ -1,0 +1,7 @@
+ingress:
+  - hostname: wp.keleshteri.eu.org
+    service: http://wordpress:80
+    originRequest:
+      httpHostHeader: wp.keleshteri.eu.org
+      originServerName: wp.keleshteri.eu.org
+  - service: http_status:404
